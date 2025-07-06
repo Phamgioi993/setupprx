@@ -1,47 +1,44 @@
 #!/bin/bash
 
-# Cập nhật và cài đặt Dante server
+# Cập nhật và cài đặt Dante SOCKS5
 apt update && apt install -y dante-server apache2-utils
 
-# Tạo user
-useradd -M -s /usr/sbin/nologin 82kJ99ME
-echo "82kJ99ME:J1Z0g1sC" | chpasswd
+# Random port từ 2000–65000
+PORT=$(shuf -i 2000-65000 -n 1)
+USERNAME="user$(tr -dc A-Za-z0-9 </dev/urandom | head -c 5)"
+PASSWORD="pass$(tr -dc A-Za-z0-9 </dev/urandom | head -c 8)"
 
-# Cấu hình Dante
-cat > /etc/danted.conf <<EOF
+# Ghi thông tin user vào file auth
+htpasswd -bc /etc/socksauth $USERNAME $PASSWORD
+
+# Lấy interface tự động
+IFACE=$(ip route get 1.1.1.1 | grep -oP 'dev \K\S+')
+
+# Ghi file cấu hình danted
+cat <<EOF > /etc/danted.conf
 logoutput: /var/log/danted.log
-internal: ens4 port = 10123
-external: ens4
+internal: $IFACE port = $PORT
+external: $IFACE
 
 method: username
-user.privileged: root
-user.unprivileged: nobody
-user.libwrap: nobody
+user.notprivileged: nobody
 
 client pass {
     from: 0.0.0.0/0 to: 0.0.0.0/0
-    log: connect disconnect error
+    log: connect disconnect
 }
 
-pass {
+socks pass {
     from: 0.0.0.0/0 to: 0.0.0.0/0
-    protocol: tcp udp
+    log: connect disconnect
     method: username
-    log: connect disconnect error
 }
 EOF
 
-# Mở log
-touch /var/log/danted.log
-chmod 666 /var/log/danted.log
-
-# Khởi động Dante
-systemctl restart danted
+# Cấp quyền và khởi động lại
 systemctl enable danted
+systemctl restart danted
 
-# Xuất thông tin proxy
-echo "SOCKS5 Proxy đã được cài đặt thành công!"
-echo "IP: $(curl -s ifconfig.me)"
-echo "Port: 10123"
-echo "Username: 82kJ99ME"
-echo "Password: J1Z0g1sC"
+# Lưu thông tin
+EXTERNAL_IP=$(curl -s ifconfig.me)
+echo -e "IP: $EXTERNAL_IP\nPort: $PORT\nUsername: $USERNAME\nPassword: $PASSWORD" | tee /etc/proxy_info.txt
