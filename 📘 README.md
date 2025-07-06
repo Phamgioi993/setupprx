@@ -2,20 +2,25 @@
 
 Script tự động cài proxy SOCKS5 bằng Dante trên Ubuntu.
 
-## 🔧 Tính năng
-- Cài đặt dante-server
-- Tạo proxy SOCKS5 với:
-  - Port random
-  - Username/password random
-- Ghi thông tin ra `/etc/proxy_info.txt`
-- Tự động bật service sau khi cài đặt
+## ✨ Tính năng
+
+- Tự động cài `dante-server`
+- Tạo nhiều proxy SOCKS5:
+  - Random port
+  - Random user/pass
+- Lưu thông tin proxy ra file `/etc/proxy_list.txt`
+- Tự động enable & restart `danted`
 
 ## 🚀 Hướng dẫn sử dụng
 
 ```bash
-curl -O https://raw.githubusercontent.com/Phamgioi993/setupprx/main/install_proxy_random.sh
-chmod +x install_proxy_random.sh
-sudo ./install_proxy_random.sh
+curl -O https://raw.githubusercontent.com/Phamgioi993/setupprx/main/install_multi_proxy.sh
+chmod +x install_multi_proxy.sh
+sudo ./install_multi_proxy.sh
+```
 
-# Xem thông tin proxy:
-cat /etc/proxy_info.txt
+## 📄 Xem danh sách proxy đã tạo
+
+```bash
+cat /etc/proxy_list.txt
+```
